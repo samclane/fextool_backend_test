@@ -1,40 +1,45 @@
 from flask import Flask, request, jsonify
-import csv
+import sqlite3
 
 app = Flask(__name__)
 
+def dictionary_factory(db, row):
+    return {
+        "first_name": row[0],
+        "last_name": row[1],
+        "state": row[2],
+        "phonenumber": row[3],
+        "email": row[4]
+    }
+
 def search_phone_book(**kwargs):
+    db = sqlite3.connect("phonebook.db")
+    
     search_first_name = kwargs.get("first_name")
     search_last_name = kwargs.get("last_name")
     search_state = kwargs.get("state")
 
-    results = []
+    if not any([search_first_name, search_last_name, search_state]):
+        return []
 
-    with open("data/phonebook.csv") as phonebook: 
-        phonebook_csv_reader = csv.reader(phonebook)
+    query = "SELECT * FROM people WHERE "
 
-        for row in phonebook_csv_reader:
-            first_name, last_name, state, phonenumber = row
+    query_arguments = []
 
-            if search_first_name and first_name != search_first_name:
-                continue
+    if search_first_name:
+        query_arguments.append(f"first_name='{search_first_name}'")
 
-            if search_last_name and last_name != search_last_name:
-                continue
+    if search_last_name:
+        query_arguments.append(f"last_name='{search_last_name}'")
 
-            if search_state and state != search_state:
-                continue
+    if search_state:
+        query_arguments.append(f"state='{search_state}'")
 
-            row_to_search_match_dict = {
-                "first_name": first_name,
-                "last_name": last_name,
-                "state": state,
-                "phonenumber": phonenumber
-            }
+    query += " AND ".join(query_arguments) 
 
-            results.append(row_to_search_match_dict)
+    db.row_factory = dictionary_factory
 
-    return results
+    return list(db.execute(query))
 
 @app.route("/search/", methods=['GET'])
 def search_phonebook():
