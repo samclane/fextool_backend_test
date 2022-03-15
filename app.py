@@ -18,8 +18,9 @@ def search_phone_book(**kwargs):
     search_first_name = kwargs.get("first_name")
     search_last_name = kwargs.get("last_name")
     search_state = kwargs.get("state")
+    search_phonenumber = kwargs.get("phonenumber")
 
-    if not any([search_first_name, search_last_name, search_state]):
+    if not any([search_first_name, search_last_name, search_state, search_phonenumber]):
         return []
 
     query = "SELECT * FROM people WHERE "
@@ -35,6 +36,9 @@ def search_phone_book(**kwargs):
     if search_state:
         query_arguments.append(f"state='{search_state}'")
 
+    if search_phonenumber:
+        query_arguments.append(f"phonenumber='{search_phonenumber}'")
+
     query += " AND ".join(query_arguments) 
 
     db.row_factory = dictionary_factory
@@ -46,14 +50,16 @@ def search_phonebook():
     first_name = request.args.get("firstName")
     last_name = request.args.get("lastName")
     state = request.args.get("state")
+    phonenumber = request.args.get("phonenumber")
 
-    if not any([first_name, last_name, state]):
-        return jsonify({"error": "At least one of the three fields must be filled."}), 400
+    if not any([first_name, last_name, state, phonenumber]):
+        return jsonify({"error": "At least one of the four fields must be filled."}), 400
 
     search_results = search_phone_book(
         first_name=first_name, 
         last_name=last_name, 
-        state=state
+        state=state,
+        phonenumber=phonenumber
     )
 
     return jsonify(search_results)
