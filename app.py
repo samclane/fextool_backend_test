@@ -37,6 +37,8 @@ def search_phone_book(**kwargs):
 
     query += " AND ".join(query_arguments) 
 
+    query += "COLLATE NOCASE"
+
     db.row_factory = dictionary_factory
 
     return list(db.execute(query))
