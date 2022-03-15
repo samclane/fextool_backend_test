@@ -25,21 +25,25 @@ def search_phone_book(**kwargs):
     query = "SELECT * FROM people WHERE "
 
     query_arguments = []
+    query_params = []
 
     if search_first_name:
-        query_arguments.append(f"first_name='{search_first_name}'")
+        query_arguments.append(f"first_name = ?")
+        query_params.append(search_first_name)
 
     if search_last_name:
-        query_arguments.append(f"last_name='{search_last_name}'")
+        query_arguments.append(f"last_name = ?")
+        query_params.append(search_last_name)
 
     if search_state:
-        query_arguments.append(f"state='{search_state}'")
+        query_arguments.append(f"state = ?")
+        query_params.append(search_state)
 
     query += " AND ".join(query_arguments) 
 
     db.row_factory = dictionary_factory
 
-    return list(db.execute(query))
+    return list(db.execute(query, query_params))
 
 @app.route("/search/", methods=['GET'])
 def search_phonebook():
